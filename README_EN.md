@@ -17,6 +17,20 @@ the per-service badge colours and the line diagram):
 
 ![In-game screenshot](screenshots/ingame.png)
 
+> ## ⚠️ This is the HZYMTR server build
+>
+> This branch is the dedicated build for the **HZYMTR server**. The only
+> difference from the main version is the **time display tiers**:
+>
+> | Remaining | This branch (HZYMTR) | Main |
+> | --- | --- | --- |
+> | over 5 min | real-world clock `xx:xx` | clock only above 10 min |
+> | 1-5 min | `N 分鐘` countdown | same (anything under 10 min) |
+> | under 1 min | **seconds `00:SS`** | shows `0 分鐘` |
+>
+> The archive name differs too: **`HKR-Split-Flap-Display-For-HZYMTR.zip`**,
+> so it can't be confused with the main build.
+
 ---
 
 ## Origin & Credits
