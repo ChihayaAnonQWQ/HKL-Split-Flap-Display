@@ -263,11 +263,12 @@ const L = {
 };
 
 /* ================= 时间显示 =================
- * 按【剩余时间】分档，和参考图的规律一致：
- *     剩余 < COUNTDOWN_WITHIN_MINUTES 分钟  -> 「N 分鐘 / N min」倒计时
- *     剩余 >= 那个分钟数                    -> 现实时刻 xx:xx（24 小时制）
- * 参考图里「1 分鐘」「2 分鐘」都是快到站的班次，「00:18」是还早的班次。 */
-const COUNTDOWN_WITHIN_MINUTES = 10;
+ * 按【剩余时间】分三档：
+ *     剩余 > 5 分钟   -> 现实时刻 xx:xx（24 小时制）
+ *     1 ~ 5 分钟      -> 「N 分鐘 / N min」倒计时
+ *     不足 1 分钟     -> 读秒 00:SS
+ * 分界点在 COUNTDOWN_WITHIN_MINUTES，读秒开关在 TIME_SECONDS_BELOW_MINUTE。 */
+const COUNTDOWN_WITHIN_MINUTES = 5;
 
 /* 倒计时和现实时刻都以哪个时间为准：
    "arrival"   = 到达时刻（默认）
@@ -275,9 +276,9 @@ const COUNTDOWN_WITHIN_MINUTES = 10;
 const TIME_SOURCE = "arrival";
 
 /* 不足 1 分钟时是否切成读秒。
-   false（默认）= 照常显示「0 分鐘」（参考图没有秒数显示）
-   true         = 00:45 / 45 秒 读秒 */
-const TIME_SECONDS_BELOW_MINUTE = false;
+   true（本分支）= 00:45 读秒
+   false         = 照常显示「0 分鐘」 */
+const TIME_SECONDS_BELOW_MINUTE = true;
 
 /* 读秒样式（只在上面开关为 true 时生效）：
    "clock" = 00:45（数字字体）
