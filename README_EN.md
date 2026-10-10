@@ -114,18 +114,22 @@ MTR route names use the format `Chinese|English`, and a double pipe `||` marks a
 | 快速 | 快速 | Rapid | `#215DB3` blue | `快速\|Rapid` | `快速` |
 | 各停 | 各停 | Local | `#3C3C3C` grey | `各停\|Local` | `各停` |
 
-**Any of these places works:**
+### Put it in the route **number**
 
-- In the route **name** → `特急|Spec.press`
-- In the route **number** → recognised just the same (the name can even be `test`)
-- In a `||` note → `花越线|Hana Line||特急|Spec.press`
-- **Direction words are ignored automatically** — `快速|Rapid||上行` still shows
-  "快速 Rapid" instead of treating 上行 (up direction) as a service type.
-  Direction is meaningless on a PIDS: which platform you are on already determines it.
+**The service type is read from MTR's "route number" only**, so the values above go in
+the **Route Number** field. Whatever the route **name** says is irrelevant
+(`test`, empty, anything).
 
-Selection rule: **if the name is empty, or the name doesn't look like `Chinese|English`
-while the number does, the number is used; otherwise the name is used.**
-To force one of them, set `SERVICE_LABEL_FROM` to `"name"` or `"number"`.
+- If the route number is **empty**, the script falls back to the route name so the
+  badge never goes blank
+- A `||` note works inside the number too → `花越线|Hana Line||特急|Spec.press`
+- **Direction words are ignored automatically** → `快速|Rapid||上行` still shows
+  "快速 Rapid" (direction is meaningless on a PIDS: which platform you are on
+  already determines it)
+
+> Earlier versions tried to auto-detect whether the name or the number "looked more
+> like a service type". That is gone — the route number is now the single source, so
+> the behaviour is predictable and can't be thrown off by an unrelated word in the name.
 
 ### Custom mapping table
 
@@ -182,7 +186,6 @@ Every tunable lives at the top of the script, in this order:
 | `SS` | Supersampling factor (default 8 → 1088×608 texture) |
 | `C_*` | Full colour palette |
 | `SERVICE_OVERRIDE` | Service-type mapping table (see above) |
-| `SERVICE_LABEL_FROM` | Take service text from name or route number |
 | `SERVICE_IGNORE_EXTRA` | Direction words to ignore |
 | `BADGE_*` | Badge width, font size, wrapping, italics |
 | `LABELS` | Every hard-coded string on screen |

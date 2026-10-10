@@ -107,14 +107,10 @@ const SERVICE_OVERRIDE = [
     // { name: ["普通"], zh: "普通", en: "Ordinary", color: "7F8C8D" }
 ];
 
-/* 种别文字从哪个输入框取（MTR 路线界面有「名称」和「线路号」两个框）。
-   "auto"   = 自动（默认）：
-              名称没填                    -> 用线路号
-              名称不像「中|英」而线路号像  -> 用线路号（很多服务器把种别填在号码里）
-              其余情况                    -> 用名称
-   "name"   = 只用「名称」
-   "number" = 只用「线路号」 */
-const SERVICE_LABEL_FROM = "auto";
+/* 种别文字【只从 MTR 的「线路号」读】。
+   线路号没填时才退回路线名称，避免徽章一片空白 —— 除此之外不再看名称。
+   （早期版本还会自动判断「名称和线路号哪个更像种别」，现在统一以线路号为唯一来源：
+     行为可预测，不会因为名称里恰好带了某个词就串味。） */
 
 /* 上下行的备注词。
    MTR 官方推荐把两个方向写成「同一线路名 + || 方向」：
@@ -1214,19 +1210,9 @@ function isDirectionExtra(extra) {
 
 /* 按上面的设定挑出种别文字的来源字符串 */
 function serviceLabelSource(arrival) {
-    var name = safeStr(arrival.routeName()).trim();
     var num = safeStr(arrival.routeNumber()).trim();
-
-    if (SERVICE_LABEL_FROM === "number") return num !== "" ? num : name;
-    if (SERVICE_LABEL_FROM === "name") return name !== "" ? name : num;
-
-    if (name === "") return num;
-
-    var nameBilingual = name.indexOf("|") >= 0;   // 带竖线 = 像「中文|English」
-    var numBilingual = num.indexOf("|") >= 0;
-    if (!nameBilingual && numBilingual) return num;
-
-    return name;
+    if (num !== "") return num;
+    return safeStr(arrival.routeName()).trim();   // 线路号没填才退回名称
 }
 
 /* SERVICE_OVERRIDE 的 name 关键字匹配。
