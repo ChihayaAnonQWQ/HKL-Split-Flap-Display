@@ -226,6 +226,8 @@ Set the `en` value to an empty string `""` to show Chinese only.
 ```
 HKR-Split-Flap-Display/
 ├── pack.mcmeta
+├── LICENSE                             # MIT
+├── NOTICE.md                           # third-party attribution
 ├── pack.png
 ├── preview.png
 ├── screenshots/ingame.png              # in-game screenshot
@@ -333,3 +335,5 @@ Dynamic behaviour such as the flip animation and the terminus light is
 > The layout design references the Hana-Koshi Line split-flap display built by
 > Forest_E233 on the official MTR server, for study and personal use.
 > MTR and Joban Client Mod remain the property of their respective authors.
+>
+> See [NOTICE.md](NOTICE.md) for third-party attribution.

@@ -210,6 +210,8 @@ const LABELS = {
 
 ```
 HKR-Split-Flap-Display/
+├── LICENSE                             # MIT
+├── NOTICE.md                           # 第三方作品说明
 ├── pack.mcmeta
 ├── pack.png
 ├── preview.png
@@ -313,3 +315,5 @@ JCM 的 `Resources.getSystemFont()` 返回的是 `Font.createFont` 加载的字�
 
 > 版面设计参考自 MTR 官方服务器上 Forest_E233 修建的花越线翻牌显示器，
 > 仅供学习与个人使用。MTR 与 Joban Client Mod 的版权归其各自作者所有。
+>
+> 详见 [NOTICE.md](NOTICE.md)（第三方作品说明）。
