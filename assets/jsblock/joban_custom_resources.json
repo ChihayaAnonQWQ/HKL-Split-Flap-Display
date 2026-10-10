@@ -1,0 +1,12 @@
+{
+  "pids_images": [
+    {
+      "id": "next_train",
+      "name": "HKR Split-Flap Display",
+      "thumbnail": "jsblock:textures/pids/next_train/thumbnail.png",
+      "scriptFiles": [
+        "jsblock:scripts/next_train.js"
+      ]
+    }
+  ]
+}
