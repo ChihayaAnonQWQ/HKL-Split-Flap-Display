@@ -77,7 +77,7 @@ Only **JCM's PIDS blocks** are supported:
 | **種別 Type** | Service-type badge (Chinese + English), colour-coded per service |
 | **目的地 Destination** | Terminus name (bilingual), from MTR data |
 | **月台 Plat.** | Platform-number circle, tinted with the MTR route colour |
-| **開出 Dep. Time** | Under 10 minutes: countdown `N 分鐘`; 10 minutes or more: real-world clock `xx:xx` |
+| **開出 Dep. Time** | **This branch has three tiers**: over 5 min shows the real-world clock `xx:xx`; 1–5 min shows `N 分鐘`; under 1 min counts seconds as `00:SS` |
 | **停靠站 Stopping at** | Full line diagram: grey dot = not served, lit white = served, breathing light on the terminus, large dot on the current station |
 | **第二班 / 第三班** | The next two trains |
 
@@ -189,8 +189,10 @@ Every tunable lives at the top of the script, in this order:
 | `SERVICE_IGNORE_EXTRA` | Direction words to ignore |
 | `BADGE_*` | Badge width, font size, wrapping, italics |
 | `LABELS` | Every hard-coded string on screen |
-| `COUNTDOWN_WITHIN_MINUTES` | Countdown / clock threshold (default 10 minutes) |
+| `COUNTDOWN_WITHIN_MINUTES` | **Clock / countdown threshold (5 minutes on this branch)** |
 | `TIME_SOURCE` | Base time on arrival or departure |
+| `TIME_SECONDS_BELOW_MINUTE` | **Count seconds under 1 minute (on for this branch)** |
+| `TIME_SECONDS_STYLE` | Seconds style: `clock` = `00:45`, `unit` = `45 秒 / 45 sec` |
 | `SEAM_*` | Split-flap seams |
 | `FLIP_*` | Flip animation and sound |
 | `TERMINAL_LED_*` | Terminus breathing light |
