@@ -1382,6 +1382,20 @@ function drawRouteMap(g, state, line, barColor) {
 
 /* 在所有到站列车里挑一条停车站最多的路线当作「全线」。
    返回 { stations:[{id,name}], stopsOf:{id:bool}, majors:{id:bool} } */
+/* 这条路线的站台列表是否包含 stopSet 里的【全部】站台？
+   用来判断「这条路线能不能当第一班车的底图」——
+   不能的话说明它是另一条线路，拿它当底图会把第一班车的站全标成灰点。 */
+function routeCovers(plats, stopSet) {
+    var have = {};
+    for (var i = 0; i < plats.size(); i++) {
+        have["" + plats.get(i).getPlatformId()] = true;
+    }
+    for (var k in stopSet) {
+        if (stopSet[k] === true && have[k] !== true) return false;
+    }
+    return true;
+}
+
 function pickLine(arrivals, state, pids) {
     if (state == null) state = {};
     var all = [];
@@ -1394,6 +1408,25 @@ function pickLine(arrivals, state, pids) {
 
     /* 注意：Rhino 把块内 let/const 当函数级查重，
        所以同一函数内所有局部变量都必须取唯一名字，不能靠块作用域隔离。 */
+    /* 第一班车的停靠站台集合。线路图上要标「停靠 / 不停靠」的就是这班车，
+       所以底图必须包含这些站台，否则就是【另一条线路】的路线。 */
+    var firstRoute = safeRoute(all[0]);
+    var stopSet = {};
+    var stopCount = 0;
+    if (firstRoute != null) {
+        var firstPlats0 = firstRoute.getPlatforms();
+        if (firstPlats0 != null) {
+            for (var i = 0; i < firstPlats0.size(); i++) {
+                var pk0 = "" + firstPlats0.get(i).getPlatformId();
+                if (stopSet[pk0] !== true) { stopSet[pk0] = true; stopCount++; }
+            }
+        }
+    }
+
+    /* 挑底图：在【包含第一班车全部停靠站台】的路线里，取站数最多的那条。
+       ★ 这一条是修多线路串味的关键：
+         以前只按「站数最多」挑，两条线路共用一个 PIDS 时会把另一条线路选成底图，
+         于是第一班车的站一个都对不上，整张线路图全变成灰点。 */
     var best = null, bestCount = -1;
     for (var i = 0; i < all.length; i++) {
         var candRoute = safeRoute(all[i]);
@@ -1401,9 +1434,14 @@ function pickLine(arrivals, state, pids) {
         var candPlats = candRoute.getPlatforms();
         if (candPlats == null) continue;
         var candSize = candPlats.size();
-        if (candSize > bestCount) { bestCount = candSize; best = candRoute; }
+        if (candSize <= bestCount) continue;
+        if (stopCount > 0 && !routeCovers(candPlats, stopSet)) continue;   // 另一条线路，跳过
+        bestCount = candSize;
+        best = candRoute;
     }
-    if (best == null || bestCount <= 0) return null;
+    /* 没有任何路线能盖住第一班车的停站（例如只有它自己在跑）-> 就用它自己的路线 */
+    if (best == null) best = firstRoute;
+    if (best == null) return null;
 
     var stations = [];
     var seen = {};
@@ -1421,32 +1459,23 @@ function pickLine(arrivals, state, pids) {
        所以记住见过的最大线路，之后不再缩水。
        代价：换线路时可能短暂显示旧线路 —— 用「站点 ID 完全不重叠」来兜底复位。 */
     var cached = state.lineStations;
-    if (cached != null && cached.length > 0) {
-        var sameLine = false;
-        if (stations.length > 0) {
-            var cacheIds = {};
-            for (var i = 0; i < cached.length; i++) cacheIds[cached[i].id] = true;
-            for (var i = 0; i < stations.length; i++) {
-                if (cacheIds[stations[i].id] === true) { sameLine = true; break; }
-            }
+    if (cached != null && cached.length > 0 && stations.length < cached.length) {
+        var cacheIds = {};
+        for (var i = 0; i < cached.length; i++) cacheIds[cached[i].id] = true;
+        /* 只有缓存【仍然包含第一班车全部停靠站台】时才沿用。
+           否则说明换到别的线路了，必须复位，不能拿旧线路的站点表硬套。 */
+        var cacheOk = true;
+        for (var k in stopSet) {
+            if (stopSet[k] === true && cacheIds[k] !== true) { cacheOk = false; break; }
         }
-        /* 新的更长 -> 换新；完全对不上 -> 换新；否则沿用缓存 */
-        if (stations.length < cached.length && sameLine) {
-            stations = cached;
-        }
+        if (cacheOk) stations = cached;
     }
     state.lineStations = stations;
 
-    /* ---- 第一班车在哪些站停车（必须按当前数据重算，不能用缓存里的）---- */
+    /* ---- 第一班车在哪些站停车 ----
+       stopSet 上面已经按当前数据算好了，这里直接用；
+       因为底图保证包含了这些站台，所以不会出现「全是灰点」的情况。 */
     var stopsOf = {};
-    var stopSet = {};
-    var firstRoute = safeRoute(all[0]);
-    if (firstRoute != null) {
-        var firstPlats = firstRoute.getPlatforms();
-        for (var i = 0; i < firstPlats.size(); i++) {
-            stopSet["" + firstPlats.get(i).getPlatformId()] = true;
-        }
-    }
     for (var i = 0; i < stations.length; i++) {
         stopsOf[stations[i].id] = stopSet[stations[i].id] === true;
     }
