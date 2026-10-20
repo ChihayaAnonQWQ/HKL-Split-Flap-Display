@@ -1471,7 +1471,15 @@ function pickLine(arrivals, state, pids) {
        ★ 第 1 级是修「并行线路被误认成快车」的关键：
          以前只有「站数最多且盖得住停站」一条判据，
          另一条并行线路只要盖得住就会被当成快车。 */
-    var best = null, bestCount = -1;
+    /* 只考虑「比第一班车自己更长」的路线 —— 它自己那条永远同色且覆盖自己，
+       若把它算进候选，第 1 级就永远当场命中，第 2 级（跨色）根本走不到。 */
+    var firstSize = 0;
+    if (firstRoute != null) {
+        var firstPlatsS = firstRoute.getPlatforms();
+        if (firstPlatsS != null) firstSize = firstPlatsS.size();
+    }
+
+    var best = null, bestCount = firstSize;
     var pass = 0;
     var passMax = LINE_FALLBACK_ANY_COLOR ? 2 : 1;
     for (pass = 0; pass < passMax && best == null; pass++) {
@@ -1481,7 +1489,7 @@ function pickLine(arrivals, state, pids) {
             var candPlats = candRoute.getPlatforms();
             if (candPlats == null) continue;
             var candSize = candPlats.size();
-            if (candSize <= bestCount) continue;
+            if (candSize <= bestCount) continue;   // 不比现有候选更长（含「它自己那条」）
             if (pass === 0 && firstColor != null) {
                 var candColor = null;
                 try { candColor = String(candRoute.getColor()); } catch (e2) { candColor = null; }
