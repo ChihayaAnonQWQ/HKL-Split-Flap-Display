@@ -93,13 +93,17 @@ const PLATFORM_COLOR_FROM = "route";
    name 可以是字符串，也可以是数组（中英任意一个命中就算）。
    顺序有讲究：越靠前越优先，把更具体的写法放前面。 */
 const SERVICE_OVERRIDE = [
-    { name: ["特急"],                        color: "D32F2F" },  // 红
-    { name: ["準急", "Semi Exp."],           color: "27AE60" },  // 绿
-    { name: ["特快"],                        color: "453EA5" },  // 紫
-    { name: ["通快", "Com.Rapid"],           color: "0E9E9E" },  // 蓝绿
-    { name: ["急行", "Ex.press"],            color: "E67E22" },  // 橙
-    { name: ["快速"],                        color: "215DB3" },  // 蓝
-    { name: ["各停"],                        color: "3C3C3C" }   // 灰
+    /* ★ 顺序即优先级，从「最快」到「最慢」排。
+       这个顺序不能乱：英文里 "Limited Express" 含 "Express"、
+       "Special Rapid" 含 "Rapid" —— 快的必须排在慢的前面，否则会被抢走。
+       关键字不区分大小写，只要线路号里包含就算命中。 */
+    { name: ["特急", "特別急行", "特别急行", "Ltd. Exp.", "Limited Exp.", "Limited Express"], color: "D32F2F" },  // 红
+    { name: ["準急", "准急", "Semi Exp.", "Semi-Exp.", "Semi Express"],                     color: "27AE60" },  // 绿
+    { name: ["特快", "Special Rapid", "Spec. Rapid", "Spec.Rapid"],                         color: "453EA5" },  // 紫
+    { name: ["通快", "Com.Rapid", "Com Rapid", "Commuter Rapid"],                           color: "0E9E9E" },  // 蓝绿
+    { name: ["急行", "Ex.press", "Express", "Exp."],                                        color: "E67E22" },  // 橙
+    { name: ["快速", "Rapid Service", "Rapid"],                                             color: "215DB3" },  // 蓝
+    { name: ["各停", "各站停车", "各站停車", "各站", "站站停", "每站停", "普通", "Local"],   color: "3C3C3C" }   // 灰
 
     // 想按路线号码匹配就加 number：
     // { number: "507", zh: "各停", en: "Local", color: "00A650" },
@@ -175,6 +179,15 @@ const SEAM_ON_LABELS = false;
    判定顺序：先看本 PIDS 的目标站台，再退回 pids.station() 的站名。
    注意它【不】闪灯 —— 只有终点站呼吸。 */
 const CURRENT_STATION_MARK = true;
+
+/* 线路图底图是否允许「跨颜色借用」。
+   MTR 没有独立的线路实体，官方是用【颜色相同】来划分同一条线路的。
+   所以默认 false：底图只认与第一班车同色的路线。
+     ・两条不同名字的线并行经过几个站、甚至始发终到都一样 —— 颜色不同就不会被误认成
+       同一条线的快车（它们各自画自己的线路图）。
+     ・想让底图借用别的颜色（例如你把各停/快速配成了不同颜色），改成 true。
+   注意 true 有误判风险：只要另一条线盖得住第一班车的停站，就可能被当成「快车的各停」。 */
+const LINE_FALLBACK_ANY_COLOR = false;
 
 /* 翻牌动画：内容变化时旧牌绕中线压扁到 0，新牌再从中线展开 */
 const FLIP_ENABLED = true;
@@ -1441,23 +1454,45 @@ function pickLine(arrivals, state, pids) {
         }
     }
 
-    /* 挑底图：在【包含第一班车全部停靠车站】的路线里，取站数最多的那条。
-       ★ 这一条是修多线路串味的关键：
-         以前只按「站数最多」挑，两条线路共用一个 PIDS 时会把另一条线路选成底图，
-         于是第一班车的站一个都对不上，整张线路图全变成灰点。 */
-    var best = null, bestCount = -1;
-    for (var i = 0; i < all.length; i++) {
-        var candRoute = safeRoute(all[i]);
-        if (candRoute == null) continue;
-        var candPlats = candRoute.getPlatforms();
-        if (candPlats == null) continue;
-        var candSize = candPlats.size();
-        if (candSize <= bestCount) continue;
-        if (stopCount > 0 && !routeCovers(candPlats, stopSet)) continue;   // 另一条线路，跳过
-        bestCount = candSize;
-        best = candRoute;
+    /* 第一班车的线路颜色。MTR 没有独立的「线路」实体，
+       官方就是用【颜色相同】来划分同一条线路的（同线可以有多条各停/快速路线）。
+       颜色是区分「同线的快车」与「并行的另一条线」的唯一可靠依据：
+       两条不同名字的线并行经过几个站、甚至始发终到都一样时，
+       光看站台集合分不出来 —— 但颜色通常不同。 */
+    var firstColor = null;
+    if (firstRoute != null) {
+        try { firstColor = String(firstRoute.getColor()); } catch (e) { firstColor = null; }
     }
-    /* 没有任何路线能盖住第一班车的停站（例如只有它自己在跑）-> 就用它自己的路线 */
+
+    /* 挑底图，三级优先：
+       1. 与第一班车【同色】且盖得住它的全部停站  -> 同一条线的各停/快速
+       2. 只要求盖得住停站（颜色不同也接受）      -> 有些服务器把各停/快速配成不同颜色
+       3. 都没有                                  -> 用第一班车自己的路线
+       ★ 第 1 级是修「并行线路被误认成快车」的关键：
+         以前只有「站数最多且盖得住停站」一条判据，
+         另一条并行线路只要盖得住就会被当成快车。 */
+    var best = null, bestCount = -1;
+    var pass = 0;
+    var passMax = LINE_FALLBACK_ANY_COLOR ? 2 : 1;
+    for (pass = 0; pass < passMax && best == null; pass++) {
+        for (var i = 0; i < all.length; i++) {
+            var candRoute = safeRoute(all[i]);
+            if (candRoute == null) continue;
+            var candPlats = candRoute.getPlatforms();
+            if (candPlats == null) continue;
+            var candSize = candPlats.size();
+            if (candSize <= bestCount) continue;
+            if (pass === 0 && firstColor != null) {
+                var candColor = null;
+                try { candColor = String(candRoute.getColor()); } catch (e2) { candColor = null; }
+                if (candColor == null || candColor !== firstColor) continue;   // 不是同一条线
+            }
+            if (stopCount > 0 && !routeCovers(candPlats, stopSet)) continue;   // 盖不住停站
+            bestCount = candSize;
+            best = candRoute;
+        }
+    }
+    /* 两级都没找到（例如只有它自己在跑）-> 就用它自己的路线 */
     if (best == null) best = firstRoute;
     if (best == null) return null;
 
