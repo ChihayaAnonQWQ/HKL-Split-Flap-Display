@@ -187,7 +187,7 @@ const CURRENT_STATION_MARK = true;
        同一条线的快车（它们各自画自己的线路图）。
      ・想让底图借用别的颜色（例如你把各停/快速配成了不同颜色），改成 true。
    注意 true 有误判风险：只要另一条线盖得住第一班车的停站，就可能被当成「快车的各停」。 */
-const LINE_FALLBACK_ANY_COLOR = false;
+const LINE_FALLBACK_ANY_COLOR = true;   // 本分支开启：允许跨颜色借用底图
 
 /* 翻牌动画：内容变化时旧牌绕中线压扁到 0，新牌再从中线展开 */
 const FLIP_ENABLED = true;

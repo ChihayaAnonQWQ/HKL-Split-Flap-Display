@@ -17,6 +17,26 @@ the per-service badge colours and the line diagram):
 
 ![In-game screenshot](screenshots/ingame.png)
 
+> ## This branch: expresses may use their own colour
+>
+> **One difference from the main version** — how the route-map base is chosen.
+>
+> | | Main | **This branch** |
+> | --- | --- | --- |
+> | Base route must | share the **same colour** and cover the train's stops | only cover the stops (**colour ignored**) |
+> | Local + express share a colour | correct ✓ | correct ✓ |
+> | Local + express use **different** colours | base falls back to the express itself, only its stops shown | **full line shown** ✓ |
+> | A parallel line (different name, same origin/terminus) | each draws its own ✓ | **may be taken as the express's local** ✗ |
+>
+> **Use this branch if** your server gives locals and expresses **different line colours**;
+> the main version then treats them as two lines and the express screen shows only its own stops.
+>
+> **Trade-off**: two genuinely different lines that run in parallel, happen to share a colour,
+> and where one covers the other's stops, will be treated as express/local of one line.
+>
+> The archive is named **`HKR-Split-Flap-Display-Any-Color.zip`** so it can't be confused
+> with the main build.
+
 ---
 
 ## Origin & Credits
