@@ -878,9 +878,12 @@ function currentStationId(pids, stations) {
     try { targets = pids.getTargetPlatformIds(); } catch (e) { targets = null; }
     var tn = listSize(targets);
     if (tn > 0) {
+        /* stations[i].pids 是该车站在底图线路里的全部站台 ID，
+           和 getTargetPlatformIds() 返回的站台 ID 是同一套编号 */
         for (var i = 0; i < stations.length; i++) {
+            if (stations[i].pids == null) continue;
             for (var j = 0; j < tn; j++) {
-                if (String(listGet(targets, j)) === String(stations[i].id)) return stations[i].id;
+                if (stations[i].pids[String(listGet(targets, j))] === true) return stations[i].id;
             }
         }
     }
@@ -1381,13 +1384,29 @@ function drawRouteMap(g, state, line, barColor) {
 
 /* 在所有到站列车里挑一条停车站最多的路线当作「全线」。
    返回 { stations:[{id,name}], stopsOf:{id:bool}, majors:{id:bool} } */
-/* 这条路线的站台列表是否包含 stopSet 里的【全部】站台？
+/* 站台对象上取「车站」的键。
+   ★ 必须用 stationId 而不是 platformId：
+     同一条线路的各停和快速常常停在同一车站的【不同站台】，
+     用 platformId 比对会把同一个车站当成两个地方 ——
+     于是快车那屏只显示自己停的站，被它跳过的站根本不出现。
+   取不到 stationId（老版本 / 模拟器）时才退回 platformId。 */
+function stationKey(plat) {
+    var sid = null;
+    try { sid = plat.getStationId(); } catch (e) { sid = null; }
+    if (sid != null) {
+        var ss = "" + sid;
+        if (ss !== "") return ss;
+    }
+    try { return "" + plat.getPlatformId(); } catch (e2) { return "?"; }
+}
+
+/* 这条路线的站台列表是否包含 stopSet 里的【全部车站】？
    用来判断「这条路线能不能当第一班车的底图」——
    不能的话说明它是另一条线路，拿它当底图会把第一班车的站全标成灰点。 */
 function routeCovers(plats, stopSet) {
     var have = {};
     for (var i = 0; i < plats.size(); i++) {
-        have["" + plats.get(i).getPlatformId()] = true;
+        have[stationKey(plats.get(i))] = true;
     }
     for (var k in stopSet) {
         if (stopSet[k] === true && have[k] !== true) return false;
@@ -1407,8 +1426,8 @@ function pickLine(arrivals, state, pids) {
 
     /* 注意：Rhino 把块内 let/const 当函数级查重，
        所以同一函数内所有局部变量都必须取唯一名字，不能靠块作用域隔离。 */
-    /* 第一班车的停靠站台集合。线路图上要标「停靠 / 不停靠」的就是这班车，
-       所以底图必须包含这些站台，否则就是【另一条线路】的路线。 */
+    /* 第一班车的停靠【车站】集合。线路图上要标「停靠 / 不停靠」的就是这班车，
+       所以底图必须包含这些车站，否则就是【另一条线路】的路线。 */
     var firstRoute = safeRoute(all[0]);
     var stopSet = {};
     var stopCount = 0;
@@ -1416,13 +1435,13 @@ function pickLine(arrivals, state, pids) {
         var firstPlats0 = firstRoute.getPlatforms();
         if (firstPlats0 != null) {
             for (var i = 0; i < firstPlats0.size(); i++) {
-                var pk0 = "" + firstPlats0.get(i).getPlatformId();
+                var pk0 = stationKey(firstPlats0.get(i));
                 if (stopSet[pk0] !== true) { stopSet[pk0] = true; stopCount++; }
             }
         }
     }
 
-    /* 挑底图：在【包含第一班车全部停靠站台】的路线里，取站数最多的那条。
+    /* 挑底图：在【包含第一班车全部停靠车站】的路线里，取站数最多的那条。
        ★ 这一条是修多线路串味的关键：
          以前只按「站数最多」挑，两条线路共用一个 PIDS 时会把另一条线路选成底图，
          于是第一班车的站一个都对不上，整张线路图全变成灰点。 */
@@ -1442,15 +1461,27 @@ function pickLine(arrivals, state, pids) {
     if (best == null) best = firstRoute;
     if (best == null) return null;
 
+    /* 站点表按【车站】去重；同一个车站在底图里可能出现在多个站台上，
+       把这些站台 ID 都收进 pids，供「当前车站」判定用。 */
     var stations = [];
     var seen = {};
     var linePlats = best.getPlatforms();
     for (var i = 0; i < linePlats.size(); i++) {
         var linePlat = linePlats.get(i);
-        var platKey = "" + linePlat.getPlatformId();
-        if (seen[platKey] === true) continue;
-        seen[platKey] = true;
-        stations.push({ id: platKey, name: stripExtra(safeStr(linePlat.getStationName())) });
+        var skey = stationKey(linePlat);
+        var pidStr = "";
+        try { pidStr = "" + linePlat.getPlatformId(); } catch (e3) { pidStr = skey; }
+        if (seen[skey] === true) {
+            for (var j = 0; j < stations.length; j++) {
+                if (stations[j].id === skey) { stations[j].pids[pidStr] = true; break; }
+            }
+            continue;
+        }
+        seen[skey] = true;
+        var pidsMap = {};
+        pidsMap[pidStr] = true;
+        stations.push({ id: skey, pids: pidsMap,
+                        name: stripExtra(safeStr(linePlat.getStationName())) });
     }
 
     /* ---- 站点表跨帧累积（只增不减）----
