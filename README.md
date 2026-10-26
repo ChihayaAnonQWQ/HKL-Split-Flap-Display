@@ -1,8 +1,8 @@
-# HKR Split-Flap Display
+# HKL Split-Flap Display
 
 **中文** | [English](README_EN.md)
 
-[![Release](https://img.shields.io/github/v/release/ChihayaAnonQWQ/HKR-Split-Flap-Display?label=%E4%B8%8B%E8%BD%BD%20download)](https://github.com/ChihayaAnonQWQ/HKR-Split-Flap-Display/releases/latest)
+[![Release](https://img.shields.io/github/v/release/ChihayaAnonQWQ/HKL-Split-Flap-Display?label=%E4%B8%8B%E8%BD%BD%20download)](https://github.com/ChihayaAnonQWQ/HKL-Split-Flap-Display/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.19.4%20--%201.21-62b47a.svg)](#%E4%BE%9D%E8%B5%96)
 [![MTR](https://img.shields.io/badge/MTR-4.x-e2231a.svg)](#%E4%BE%9D%E8%B5%96)
@@ -36,12 +36,12 @@ MTR 与 Joban Client Mod 均为其各自作者的作品，本项目与它们没�
 
 ## 安装
 
-1. 从 [**Releases**](https://github.com/ChihayaAnonQWQ/HKR-Split-Flap-Display/releases/latest)
-   下载 `HKR-Split-Flap-Display.zip`，放进 `.minecraft/resourcepacks/`
+1. 从 [**Releases**](https://github.com/ChihayaAnonQWQ/HKL-Split-Flap-Display/releases/latest)
+   下载 `HKL-Split-Flap-Display.zip`，放进 `.minecraft/resourcepacks/`
    （**不要解压**，也不要把里面的文件夹再套一层）
 2. 游戏内 **选项 → 资源包** 启用它
 3. 放置 JCM 的 PIDS 方块，右键打开设置，在**自订显示屏格式**里选
-   **HKR Split-Flap Display**
+   **HKL Split-Flap Display**
 4. 改了脚本配置后按 **F3 + T** 重载资源包即可生效
 
 ### 支持的方块
@@ -216,7 +216,7 @@ const LABELS = {
 ## 文件结构
 
 ```
-HKR-Split-Flap-Display/
+HKL-Split-Flap-Display/
 ├── LICENSE                             # MIT
 ├── NOTICE.md                           # 第三方作品说明
 ├── pack.mcmeta

@@ -1,8 +1,8 @@
-# HKR Split-Flap Display
+# HKL Split-Flap Display
 
 [中文](README.md) | **English**
 
-[![Release](https://img.shields.io/github/v/release/ChihayaAnonQWQ/HKR-Split-Flap-Display?label=%E4%B8%8B%E8%BD%BD%20download)](https://github.com/ChihayaAnonQWQ/HKR-Split-Flap-Display/releases/latest)
+[![Release](https://img.shields.io/github/v/release/ChihayaAnonQWQ/HKL-Split-Flap-Display?label=%E4%B8%8B%E8%BD%BD%20download)](https://github.com/ChihayaAnonQWQ/HKL-Split-Flap-Display/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.19.4%20--%201.21-62b47a.svg)](#%E4%BE%9D%E8%B5%96)
 [![MTR](https://img.shields.io/badge/MTR-4.x-e2231a.svg)](#%E4%BE%9D%E8%B5%96)
@@ -41,13 +41,13 @@ This project is not affiliated with either of them.
 
 ## Installation
 
-1. Download `HKR-Split-Flap-Display.zip` from
-   [**Releases**](https://github.com/ChihayaAnonQWQ/HKR-Split-Flap-Display/releases/latest)
+1. Download `HKL-Split-Flap-Display.zip` from
+   [**Releases**](https://github.com/ChihayaAnonQWQ/HKL-Split-Flap-Display/releases/latest)
    and drop it into `.minecraft/resourcepacks/`
    (**do not unzip**, and do not leave an extra folder level inside)
 2. Enable it in **Options → Resource Packs**
 3. Place a JCM PIDS block, right-click it, and under **Custom PIDS Option**
-   choose **HKR Split-Flap Display**
+   choose **HKL Split-Flap Display**
 4. After editing script settings, press **F3 + T** to reload the pack
 
 ### Supported blocks
@@ -234,7 +234,7 @@ Set the `en` value to an empty string `""` to show Chinese only.
 ## File structure
 
 ```
-HKR-Split-Flap-Display/
+HKL-Split-Flap-Display/
 ├── pack.mcmeta
 ├── LICENSE                             # MIT
 ├── NOTICE.md                           # third-party attribution
