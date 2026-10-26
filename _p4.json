@@ -1,5 +1,0 @@
-{
-  "message": "Problems parsing JSON",
-  "documentation_url": "https://docs.github.com/rest/pulls/pulls#create-a-pull-request",
-  "status": "400"
-}
